@@ -8,6 +8,7 @@ ESP32 と 4 個の AD7193 から、重心動揺計の 4 チャンネル生デー
 - [Posturography](#posturography)
   - [目次](#目次)
   - [構成](#構成)
+  - [基板画像](#基板画像)
   - [装置側コード](#装置側コード)
   - [Arduino ファイルと通信方式](#arduino-ファイルと通信方式)
   - [データ受信方法](#データ受信方法)
@@ -38,6 +39,12 @@ ESP32 と 4 個の AD7193 から、重心動揺計の 4 チャンネル生デー
 | `calibration/calibration.xlsx` | 各重量の `Baseline median` を入力して、各センサーの校正式を作るための Excel ファイル |
 | `calibration/README.md` | 校正フォルダ単体で参照するための詳細 README |
 | `calibration/calibration.png` | 校正に関する参考画像 |
+
+## 基板画像
+
+配線・回路を確認するときは、以下の基板画像を参照してください。
+
+![基板画像](circuit.png)
 
 ## 装置側コード
 
