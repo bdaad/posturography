@@ -7,6 +7,8 @@ ESP32 と 4 個の AD7193 から、重心動揺計の 4 チャンネル生デー
 
 - [構成](#構成)
 - [装置側コード](#装置側コード)
+- [Arduino ファイルと通信方式](#arduino-ファイルと通信方式)
+- [データ受信方法](#データ受信方法)
 - [Python 環境](#python-環境)
 - [サンプリング確認](#サンプリング確認)
 - [校正手順](#校正手順)
@@ -51,6 +53,84 @@ Bluetooth で受信したい場合は `ad7193_wireless/ad7193_wireless.ino` を 
   - `CS4`: 25
 
 `ad7193_wireless.ino` は Bluetooth デバイス名 `ESP32-AD7193` で起動します。PC やスマートフォンから Bluetooth SPP として接続すると、USB シリアルと同じ CSV 行を受信できます。
+
+## Arduino ファイルと通信方式
+
+今後 Arduino 側コードが増える可能性があるため、PC 側スクリプトと対応する `.ino` はここで確認してください。  
+現在の対応は以下です。
+
+| Arduino ファイル | 通信方式 | 校正での使用 | `sampling_test.py` | `calibration.py` | 手動確認 |
+| --- | --- | --- | --- | --- | --- |
+| `ad7193_wired/ad7193_wired.ino` | USB シリアル | 推奨 | 対応 | 対応 | Arduino IDE / VS Code のシリアルモニターで確認可能 |
+| `ad7193_wireless/ad7193_wireless.ino` | USB シリアル + Bluetooth Classic SPP | USB 接続なら使用可能。Bluetooth は簡易確認向け | 対応 | OS が Bluetooth SPP をシリアルポートとして認識すれば使用可能 | Arduino IDE / VS Code / Bluetooth SPP 対応アプリで確認可能 |
+
+校正では通信の安定性を優先するため、基本は `ad7193_wired/ad7193_wired.ino` を ESP32 に書き込み、USB シリアルで取得してください。  
+`ad7193_wireless/ad7193_wireless.ino` は Bluetooth 受信の確認や、ケーブルを使わない簡易確認に使えます。
+
+どちらの Arduino ファイルも、受信データの基本形式は同じです。
+
+```text
+ch1,ch2,ch3,ch4
+```
+
+起動直後は `AD7193 ID` や `AD7193 MODE` などのデバッグ行も出ます。  
+`calibration.py` は `4 つの整数がカンマ区切りになっている行` だけをデータとして使い、デバッグ行は無視します。
+
+## データ受信方法
+
+最初は Python を動かす前に、シリアルモニターでデータが見えるか確認すると安全です。  
+速度設定は `115200 bps` にします。
+
+### VS Code で見る
+
+1. VS Code に `Serial Monitor` 拡張機能を入れる。
+2. ESP32 を USB ケーブルで PC に接続する。
+3. VS Code の Serial Monitor 画面を開く。
+4. `Port` で ESP32 のポートを選ぶ。
+   - Windows 例: `COM3`, `COM4`
+   - macOS 例: `/dev/cu.usbserial-*`, `/dev/cu.SLAB_USBtoUART`, `/dev/cu.wchusbserial*`
+5. `Baud Rate` を `115200` にする。
+6. `Start Monitoring` を押す。
+7. 以下のような 4 つの数値がカンマ区切りで流れれば受信できています。
+
+```text
+8389210,8388750,8389021,8388601
+8389208,8388749,8389020,8388602
+```
+
+### Arduino IDE で見る
+
+1. ESP32 を USB ケーブルで PC に接続する。
+2. Arduino IDE の `ツール` から ESP32 のポートを選ぶ。
+3. シリアルモニタを開く。
+4. 速度を `115200 baud` にする。
+5. `ch1,ch2,ch3,ch4` 形式のデータが流れることを確認する。
+
+### Python で見る
+
+サンプリング数まで確認したい場合は、上位フォルダで以下を実行します。
+
+```bash
+cd /Users/gyobu/Documents/weight_measurement/posturography
+python3 sampling_test.py
+```
+
+ポート一覧が表示されるので、ESP32 の番号を入力してください。  
+1 秒ごとのサンプル数が表示されれば、Python からも受信できています。
+
+### Bluetooth で見る
+
+Bluetooth を使う場合は `ad7193_wireless/ad7193_wireless.ino` を書き込みます。
+
+1. ESP32 を起動する。
+2. PC またはスマートフォンで `ESP32-AD7193` にペアリングする。
+3. PC 側で Bluetooth SPP のシリアルポートが作成されていることを確認する。
+4. VS Code、Arduino IDE、または Python スクリプトでそのポートを選ぶ。
+5. 速度設定が必要な場合は `115200` にする。
+
+Bluetooth SPP は OS によってポート名や扱いが変わります。校正データを確実に取りたい場合は USB シリアル接続を使ってください。
+
+シリアルポートは基本的に同時に 1 つのアプリからしか開けません。VS Code や Arduino IDE のシリアルモニターで確認したあとに `sampling_test.py` や `calibration.py` を使う場合は、先にシリアルモニターを閉じてください。
 
 ## Python 環境
 
@@ -172,4 +252,3 @@ python3 calibration.py
 - 0 kg と各重量で同じ置き方をする。
 - `*_hist.png` で値の分布が極端に広がっていないか確認する。
 - `*_summary.txt` の外れ値数が多すぎないか確認する。
-# posturography
