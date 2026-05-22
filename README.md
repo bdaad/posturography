@@ -36,6 +36,7 @@ ESP32 と 4 個の AD7193 から、重心動揺計の 4 チャンネル生デー
 | `ad7193_wireless/ad7193_wireless.ino` | USB シリアルに加えて Bluetooth Classic SPP でも同じ CSV 行を送信する ESP32 用スケッチ |
 | `BLE_ad7193/BLE_ad7193.ino` | `BLEDevice.h` を使って BLE Notify で AD7193 データを送信する ESP32 用スケッチ |
 | `BLE_ad7193/ble_receive.py` | BLE Notify を受信して CSV 保存する Python スクリプト |
+| `BLE_ad7193/ble_sampling_test.py` | BLE Notify の受信サンプリングレートを確認する Python スクリプト |
 | `BLE_ad7193/README.md` | BLE 版の使い方 |
 | `sampling_test.py` | シリアル受信のサンプル数を 1 秒ごと、10 秒ごとに表示する確認用スクリプト |
 | `circuit.png` | 配線・回路の参考画像 |
@@ -167,6 +168,14 @@ python3 ble_receive.py
 ```
 
 `ble_receive.py` は `ESP32-AD7193-BLE` をスキャンして接続し、BLE Notify を受信して CSV に保存します。詳しくは `BLE_ad7193/README.md` を参照してください。
+
+受信レートだけを確認したい場合は以下を使います。
+
+```bash
+python3 ble_sampling_test.py
+```
+
+BLE ではデータが落ちることがあります。実機確認では `total=3501` 付近で `index_drops=65` 程度の欠落が出た例があります。10 秒平均はおおよそ `92.5 Hz` から `98.9 Hz` でしたが、完全な連続受信ではありません。校正など欠落が困る測定では USB シリアル版を使ってください。
 
 ## Python 環境
 
